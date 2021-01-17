@@ -30,6 +30,10 @@ var config = {
 
 app.post('/getId', function(req, res) { //GET ID GIVEN USERNAME
     let search = req.body.username;
+    if(search == undefined){
+        res.status(400)
+        return;
+    }
     console.log("/getId: " + search);
     var pool = new pg.Pool(config);
 
@@ -58,6 +62,7 @@ app.post('/getId', function(req, res) { //GET ID GIVEN USERNAME
             var found = false;
             results.rows.forEach(function (row) {
                 if(row.username == search){
+                    console.log(typeof row.id)
                     res.send(row.id);
                     found = true;
                 }
@@ -71,6 +76,10 @@ app.post('/getId', function(req, res) { //GET ID GIVEN USERNAME
 
 app.post('/getData', function(req, res) { //GIVEN USERNAME, GET DATA 
     let search = req.body.username;
+    if(search == undefined){
+        res.status(400)
+        return;
+    }
     console.log("/getData: " + search);
     let result = [];
     var pool = new pg.Pool(config);
@@ -110,9 +119,14 @@ app.post('/getData', function(req, res) { //GIVEN USERNAME, GET DATA
 
 
 app.post('/addBlinkData', function(req, res) { //GIVEN ID, ADD BLINKRATE 
-    let id = req.body.id;
-    id = id.replace("\n","")
+    var id = String(req.body.id);
     let bps = Number(req.body.bps);
+    if(id == undefined || bps == undefined){
+        res.status(400)
+        return;
+    }
+    id = id.trim();
+    console.log(id)
     console.log("/addBlinkData: " + id + " : " + bps) 
     var pool = new pg.Pool(config);
 
@@ -131,22 +145,21 @@ app.post('/addBlinkData', function(req, res) { //GIVEN ID, ADD BLINKRATE
             async function () {
                 await client.query(`
                 create table if not exists users (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(),
                     username text,
                     password text
                 );`);
 
                 await client.query(`
                 create table if not exists data (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(), 
                     time_created timestamptz default now(), 
                     bps int, 
-                    user_id int, 
-                    foreign key (user_id) references users(id)
+                    user_id UUID
                 );`);
             },
             async function (results) {
-                await client.query('insert into data (bps, user_id) values (' + bps + ',' + id + ');');
+                await client.query("insert into data (bps, user_id) values (" + bps + ",'" + id + "');");
                 res.send("OK");
             }
         ])
@@ -157,6 +170,10 @@ app.post('/addBlinkData', function(req, res) { //GIVEN ID, ADD BLINKRATE
 app.post('/addUser', function(req, res) { //GIVEN USERNAME AND PASSWORD, ADD USER
     let user = req.body.username;
     let pass = req.body.password;
+    if(user == undefined || pass == undefined){
+        res.status(400);
+        return;
+    }
     console.log("/addUser: " + user + " : " + pass);
     var pool = new pg.Pool(config);
 
@@ -175,18 +192,17 @@ app.post('/addUser', function(req, res) { //GIVEN USERNAME AND PASSWORD, ADD USE
             async function () {
                 await client.query(`
                 create table if not exists users (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(),
                     username text,
                     password text
-                );`); 
+                );`);
 
                 await client.query(`
                 create table if not exists data (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(), 
                     time_created timestamptz default now(), 
                     bps int, 
-                    user_id int, 
-                    foreign key (user_id) references users(id)
+                    user_id UUID
                 );`);
             },
             async function (results) {
@@ -221,18 +237,17 @@ app.delete('/deleteAll', function(req, res) {
 
                 await client.query(`
                 create table if not exists users (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(),
                     username text,
                     password text
                 );`);
 
                 await client.query(`
                 create table if not exists data (
-                    id serial primary key, 
+                    id UUID NOT NULL DEFAULT gen_random_uuid(), 
                     time_created timestamptz default now(), 
                     bps int, 
-                    user_id int, 
-                    foreign key (user_id) references users(id)
+                    user_id UUID
                 );`);
 
                 res.send("OK");
@@ -245,6 +260,10 @@ app.delete('/deleteAll', function(req, res) {
 app.post('/login', function(req, res) { //Given Username and Password, Return True and False
     let user = req.body.username;
     let pass = req.body.password;
+    if(user == undefined || pass == undefined){
+        res.status(400);
+        return;
+    }
     console.log("/login: " + user + " : " + pass);
     var pool = new pg.Pool(config);
 
