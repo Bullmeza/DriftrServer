@@ -63,7 +63,7 @@ app.post('/getId', function(req, res) { //GET ID GIVEN USERNAME
             }
             var found = false;
             results.rows.forEach(function (row) {
-                if(row.username == search){
+                if(row.username == search && found == false){
                     console.log(typeof row.id)
                     res.send(row.id);
                     found = true;
