@@ -76,10 +76,6 @@ app.post('/getId', function(req, res) { //GET ID GIVEN USERNAME
 
 app.post('/getData', function(req, res) { //GIVEN USERNAME, GET DATA 
     let search = req.body.username;
-    if(search == undefined){
-        res.status(400)
-        return;
-    }
     console.log("/getData: " + search);
     let result = [];
     var pool = new pg.Pool(config);
@@ -104,7 +100,7 @@ app.post('/getData', function(req, res) { //GIVEN USERNAME, GET DATA
         ],
         function (err, results) {
             if (err) {
-                res.send(err)
+                console.log(res)
             }
             results.rows.forEach(function (row) {
                 if(row.username == search){
@@ -260,10 +256,6 @@ app.delete('/deleteAll', function(req, res) {
 app.post('/login', function(req, res) { //Given Username and Password, Return True and False
     let user = req.body.username;
     let pass = req.body.password;
-    if(user == undefined || pass == undefined){
-        res.status(400);
-        return;
-    }
     console.log("/login: " + user + " : " + pass);
     var pool = new pg.Pool(config);
 
@@ -287,18 +279,16 @@ app.post('/login', function(req, res) { //Given Username and Password, Return Tr
         ],
         function (err, results) {
             if (err) {
-                res.send(err)
+                console.log(err)
+                return;
             }
             var found = false;
             results.rows.forEach(function (row) {
                 if(row.username == user && row.password == pass){
-                    res.send({"Response": true});
                     found = true;
                 }
             });
-            if(found == false){
-                res.send({"Response": false});
-            }
+            res.send(found)
         });
     });
 });
